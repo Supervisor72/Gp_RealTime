@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GP Trony Live – Classifica in tempo reale</title>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0f;--panel:#15151d;--row:#1b1b24;--row2:#20202b;--red:#e10600;--gold:#ffc83d;--up:#18d86b;--dn:#ff3b3b;--purple:#b14cff;--txt:#f2f2f5;--mut:#8a8a9a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:'Titillium Web',system-ui,sans-serif}
+body{min-height:100vh;padding:14px 12px 120px;max-width:720px;margin:0 auto}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.flag{width:46px;height:30px;border-radius:4px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/12px 12px;flex:none;box-shadow:0 0 0 2px #333}
+.ttl{flex:1;line-height:1}
+.ttl b{display:block;font-size:22px;font-weight:900;letter-spacing:1px;font-style:italic}
+.ttl b i{color:var(--red);font-style:italic}
+.ttl span{font-size:12px;color:var(--mut);letter-spacing:2px;text-transform:uppercase}
+.live{display:flex;align-items:center;gap:6px;background:var(--red);padding:4px 10px;border-radius:4px;font-weight:900;font-size:13px;letter-spacing:2px;font-style:italic}
+.live i{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+.live.off{background:#444}.live.off i{animation:none;opacity:.5}
+@keyframes pulse{50%{opacity:.2}}
+.bar{display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:13px;border-left:4px solid var(--red)}
+.bar .lap{font-weight:900;font-size:18px;font-style:italic}
+.bar .lap small{color:var(--mut);font-size:12px;font-weight:600}
+.bar .upd{margin-left:auto;color:var(--mut);text-align:right;line-height:1.2}
+.prog{height:4px;background:#2a2a35;border-radius:2px;margin:-4px 0 10px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--red),#ff6a3d);width:0;transition:width .8s}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;border:0;background:var(--panel);color:var(--mut);font:900 italic 15px 'Titillium Web',system-ui,sans-serif;letter-spacing:1px;padding:10px;border-radius:6px;cursor:pointer;text-transform:uppercase}
+.tabs button.on{background:var(--txt);color:#000}
+.hdr{display:grid;grid-template-columns:38px 1fr 110px 92px;gap:6px;font-size:11px;color:var(--mut);letter-spacing:1.5px;padding:0 8px 6px;text-transform:uppercase}
+.hdr div:nth-child(n+3){text-align:right}
+.tower{position:relative}
+.row{position:absolute;left:0;right:0;height:46px;display:grid;grid-template-columns:38px 1fr 110px 92px;gap:6px;align-items:center;padding:0 8px 0 0;background:var(--row);border-radius:6px;transition:transform .9s cubic-bezier(.2,.8,.2,1),background .4s;overflow:hidden}
+.row:nth-child(even){background:var(--row2)}
+.row .pos{height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;font-style:italic;background:#fff;color:#000;clip-path:polygon(0 0,100% 0,82% 100%,0 100%)}
+.row .who{display:flex;align-items:center;gap:8px;min-width:0}
+.row .stripe{width:4px;height:26px;border-radius:2px;background:#555;flex:none}
+.row .code{font-weight:900;font-size:18px;letter-spacing:1px;width:46px;flex:none}
+.row .nm{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .val{text-align:right;font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.row .gap{text-align:right;font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums;font-weight:600}
+.row.me .stripe{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.row.me .code{color:var(--gold)}
+.row.p1 .pos{background:var(--gold)}
+.row.p2 .pos{background:#d9dee6}
+.row.p3 .pos{background:#e3995a}
+.row.pit{opacity:.45}
+.row.pit .pos{background:#555;color:#ddd}
+.row.pit .gap{color:var(--red);font-weight:900;letter-spacing:1px}
+.row .chg{position:absolute;right:4px;top:3px;font-size:10px;font-weight:900;opacity:0;transition:opacity .4s}
+.row.up{background:rgba(24,216,107,.28)!important}
+.row.dn{background:rgba(255,59,59,.22)!important}
+.row.new{animation:newin 2.4s}
+@keyframes newin{0%{background:var(--purple)}100%{}}
+.pos-g{color:var(--up)}.neg{color:var(--dn)}
+.rc{position:fixed;left:0;right:0;bottom:0;background:#000;border-top:3px solid var(--red);padding:8px 12px 12px;max-width:720px;margin:0 auto}
+.rc h4{font-size:11px;letter-spacing:2px;color:var(--red);font-weight:900}
+.rc ul{list-style:none;font-size:13px;max-height:66px;overflow:hidden}
+.rc li{padding:2px 0;border-bottom:1px solid #1d1d25;animation:slide .5s}
+.rc li b{color:var(--gold)}
+@keyframes slide{from{transform:translateX(-20px);opacity:0}}
+.msg{background:#2a1416;border:1px solid var(--red);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:14px;display:none}
+.msg.show{display:block}
+.msg button,.btn{margin-top:8px;border:0;background:var(--red);color:#fff;font:700 13px 'Titillium Web',system-ui,sans-serif;padding:7px 12px;border-radius:5px;cursor:pointer}
+.btn.ghost{background:#2a2a35}
+.foot{font-size:11px;color:var(--mut);margin-top:10px;line-height:1.4}
+.tot{display:flex;gap:8px;margin-top:10px}
+.tot div{flex:1;background:var(--panel);border-radius:8px;padding:8px 10px}
+.tot small{display:block;font-size:11px;color:var(--mut);letter-spacing:1px;text-transform:uppercase}
+.tot b{font-size:18px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="flag"></div>
+  <div class="ttl"><b>GP TRONY <i>LIVE</i></b><span id="sub">Venduti serali · Novembre</span></div>
+  <div class="live off" id="live"><i></i>LIVE</div>
+</div>
+<div class="msg" id="msg"></div>
+<div class="bar">
+  <div class="lap" id="lap">0<small>/36 AL TRAGUARDO</small></div>
+  <div class="upd" id="upd">In attesa dei dati…</div>
+</div>
+<div class="prog"><i id="prog"></i></div>
+<div class="tabs">
+  <button id="tDay" class="on">Venduto oggi</button>
+  <button id="tDelta">Delta mese</button>
+</div>
+<div class="hdr" id="hdr"><div>Pos</div><div>PDV</div><div>Venduto</div><div>Distacco</div></div>
+<div class="tower" id="tower"></div>
+<div class="tot" id="tot"></div>
+<div class="foot" id="foot"></div>
+<div style="display:flex;gap:8px;margin-top:10px">
+  <button class="btn" id="refresh">Aggiorna ora</button>
+  <button class="btn ghost" id="demo">Simula gara (demo)</button>
+</div>
+<div class="rc"><h4>RACE CONTROL</h4><ul id="rc"><li>In attesa della partenza…</li></ul></div>
+
+<script>
+const PDV=[["Avezzano","AVE"],["Bologna","BOL"],["Carpi","CAR"],["Cesena","CES"],["Chioggia","CHI"],["Città di Castello","CDC"],["Civitanova","CIV"],["Conegliano","CON"],["Fabriano","FAB"],["Faenza","FAE"],["Fano","FAN"],["Foligno","FOL"],["Forlì","FOR"],["Imola","IMO"],["L'Aquila","AQU"],["Lanciano","LAN"],["Macerata","MAC"],["Maranello","MAR"],["Monsano","MNS"],["Osimo","OSI"],["Padova","PAD"],["Perugia","PER"],["Pesaro","PSR"],["Pescara","PES"],["Reggio Emilia","REG"],["Rieti","RIE"],["Rimini","RIM"],["Roma","ROM"],["San Benedetto","SBT"],["San Marino","SMR"],["Santa Maria di Sala","SMS"],["Teramo","TER"],["Termoli","TRM"],["Vasto","VAS"],["Vicenza","VIC"],["Viterbo","VIT"]];
+const MINE=new Set(["Osimo","Civitanova","Pesaro","Macerata","Monsano","Fano"]);
+// AC netto al 21/11/2026 e AP 01/11-22/11/2025 (da Power BI)
+const BASE={"Pescara":[817695,841906],"Osimo":[606292,597923],"Vasto":[574824,569941],"Macerata":[518533,530587],"Civitanova":[506867,484907],"Padova":[494442,613101],"Avezzano":[486057,484413],"Foligno":[483838,546850],"Pesaro":[471634,478732],"Bologna":[465026,604243],"Lanciano":[454994,458449],"Teramo":[450995,475285],"L'Aquila":[444969,448752],"Monsano":[419670,489099],"Città di Castello":[403955,429804],"Fano":[399349,368249],"Termoli":[380341,402883],"Viterbo":[377830,504951],"Faenza":[373242,421806],"Carpi":[371698,418275],"Forlì":[360541,358685],"Reggio Emilia":[360402,363962],"Maranello":[357302,425101],"Chioggia":[352976,409987],"San Marino":[351027,305462],"San Benedetto":[348874,398810],"Conegliano":[336268,457583],"Rieti":[318805,398254],"Rimini":[306777,309813],"Santa Maria di Sala":[283841,339040],"Vicenza":[272367,281640],"Imola":[232218,269233],"Fabriano":[230208,229399],"Cesena":[228312,243206]};
+const BASE_DATE="2026-11-22"; // giorno a cui si riferisce l'AP (01/11–22/11/2025)
+const IVA=1.22;
+const CODE=Object.fromEntries(PDV), NAMES=PDV.map(p=>p[0]);
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+const KEY=Object.fromEntries(NAMES.map(n=>[norm(n),n]));
+KEY["SMARIADISALA"]="Santa Maria di Sala";KEY["SANBENEDETTODELTRONTO"]="San Benedetto";KEY["CDC"]="Città di Castello";KEY["AQUILA"]="L'Aquila";KEY["REGGIOEMILIA"]="Reggio Emilia";KEY["MONZANO"]="Monsano";
+const fmt=v=>String(Math.abs(Math.round(v))).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const eur=v=>'€ '+(v<0?'−':'')+fmt(v);
+const sgn=v=>(v>=0?'+':'−')+'€ '+fmt(v);
+
+let today={};      // nome -> venduto ivato
+let arrivedAt={};  // nome -> ms
+let view='day', prevPit={}, prevOrder={}, firstLoad=true, lastFetch=null;
+
+function findPdv(subject,sender){
+  let s=norm((subject||'').replace(/(GENNAIO|FEBBRAIO|MARZO|APRILE|MAGGIO|GIUGNO|LUGLIO|AGOSTO|SETTEMBRE|OTTOBRE|NOVEMBRE|DICEMBRE).*$/i,''));
+  if(KEY[s])return KEY[s];
+  for(const k in KEY) if(s && (s.startsWith(k)||k.startsWith(s)) && Math.min(s.length,k.length)>=4) return KEY[k];
+  const m=(sender||'').toLowerCase().match(/trony\.?([a-z]+)@/);
+  if(m){const k=norm(m[1]); for(const kk in KEY) if(kk.startsWith(k)||k.startsWith(kk)) return KEY[kk];}
+  return null;
+}
+function parseVal(t){
+  const m=(t||'').match(/VENDUTO\s+GIORNALIERO[^0-9\-]*?([\d\.]+(?:,\d{1,2})?)/i);
+  if(!m)return null;
+  return parseFloat(m[1].replace(/\./g,'').replace(',','.'));
+}
+function todayStr(d=new Date()){return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');}
+function isToday(dateStr){if(!dateStr)return true;const d=new Date(dateStr),n=new Date();return d.toDateString()===n.toDateString();}
+
+function ingest(payload){
+  const threads=(payload&&payload.threads)||[];
+  const next={...today};
+  for(const th of threads){
+    for(const m of (th.messages||[])){
+      if(!isToday(m.date))continue;
+      const name=findPdv(m.subject,m.sender), v=parseVal(m.snippet);
+      if(name&&v!=null){ if(next[name]==null){arrivedAt[name]=Date.now(); if(!firstLoad) rc(`📩 <b>${name.toUpperCase()}</b> AL TRAGUARDO · ${eur(v)}`);} next[name]=v; }
+    }
+  }
+  today=next; firstLoad=false; render();
+}
+
+function rows(){
+  if(view==='day'){
+    const arr=NAMES.map(n=>({n,v:today[n],pit:today[n]==null}));
+    arr.sort((a,b)=>(a.pit-b.pit)||((b.v||0)-(a.v||0))||a.n.localeCompare(b.n));
+    const lead=arr[0]&&!arr[0].pit?arr[0].v:0;
+    return arr.map((r,i)=>({...r,main:r.pit?'—':eur(r.v),gap:r.pit?'PIT':(i===0?'LEADER':'−'+eur(lead-r.v).slice(2))}));
+  }
+  const arr=Object.keys(BASE).map(n=>{const [ac,ap]=BASE[n];const t=today[n]!=null?today[n]/IVA:0;const acn=ac+t;return{n,ac:acn,ap,d:acn-ap,p:(acn-ap)/ap*100,pit:today[n]==null};});
+  arr.sort((a,b)=>b.p-a.p);
+  return arr.map(r=>({...r,main:(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(2).replace('.',',')+'%',gap:sgn(r.d),cls:r.p>=0?'pos-g':'neg'}));
+}
+
+const els={};
+function render(){
+  const R=rows(), tower=document.getElementById('tower'), H=50;
+  tower.style.height=(R.length*H)+'px';
+  const seen=new Set();
+  const changes=[];
+  R.forEach((r,i)=>{
+    seen.add(r.n);
+    let el=els[view+r.n];
+    if(!el){el=document.createElement('div');el.className='row';el.innerHTML=`<div class="pos"></div><div class="who"><span class="stripe"></span><span class="code">${CODE[r.n]}</span><span class="nm">${r.n}</span></div><div class="val"></div><div class="gap"></div>`;els[view+r.n]=el;el.style.transform=`translateY(${i*H}px)`;}
+    if(el.parentNode!==tower)tower.appendChild(el);
+    const prev=prevOrder[view]&&prevOrder[view][r.n];const wasPit=prevPit[view]&&prevPit[view][r.n];
+    el.className='row'+(MINE.has(r.n)?' me':'')+(i<3&&!r.pit?' p'+(i+1):'')+(r.pit&&view==='day'?' pit':'');
+    if(arrivedAt[r.n]&&Date.now()-arrivedAt[r.n]<3000) el.classList.add('new');
+    if(prev!=null&&prev!==i&&!r.pit){ el.classList.add(prev>i?'up':'dn'); setTimeout(()=>el.classList.remove('up','dn'),1800); if(prev>i&&!wasPit) changes.push([r.n,i,prev]); }
+    el.querySelector('.pos').textContent=r.pit&&view==='day'?'–':i+1;
+    tween(el.querySelector('.val'),r.main,r.cls);
+    el.querySelector('.gap').textContent=r.gap;
+    el.querySelector('.gap').className='gap '+(view==='delta'?(r.cls||''):'');
+    requestAnimationFrame(()=>el.style.transform=`translateY(${i*H}px)`);
+  });
+  [...tower.children].forEach(c=>{const n=c.querySelector('.nm').textContent;if(!seen.has(n)||!els[view+n]||els[view+n]!==c)c.remove();});
+  // race control: overtakes
+  if(prevOrder[view]) changes.forEach(([n,i,prev])=>{const passed=R[i+1];if(passed)rc(`⚡ <b>${n.toUpperCase()}</b> SORPASSA ${passed.n.toUpperCase()} → P${i+1}`);});
+  prevOrder[view]=Object.fromEntries(R.map((r,i)=>[r.n,i]));prevPit[view]=Object.fromEntries(R.map(r=>[r.n,!!r.pit&&view==='day']));
+  // header/stats
+  const got=Object.keys(today).length;
+  document.getElementById('lap').innerHTML=`${got}<small>/36 AL TRAGUARDO</small>`;
+  document.getElementById('prog').style.width=(got/36*100)+'%';
+  document.getElementById('hdr').innerHTML=view==='day'?'<div>Pos</div><div>PDV</div><div>Venduto</div><div>Distacco</div>':'<div>Pos</div><div>PDV</div><div>Delta %</div><div>Delta €</div>';
+  const totDay=Object.values(today).reduce((a,b)=>a+b,0);
+  if(view==='day'){document.getElementById('tot').innerHTML=`<div><small>Totale rete oggi (ivato)</small><b>${eur(totDay)}</b></div><div><small>Mail arrivate</small><b>${got} / 36</b></div>`;
+    document.getElementById('foot').textContent='Importi IVA inclusa, letti da "VENDUTO GIORNALIERO" nelle mail della cartella VENDUTI SERALI. PIT = mail non ancora arrivata. ⭐ oro = PDV di Diego.';}
+  else{let ac=0,ap=0;R.forEach(r=>{ac+=r.ac;ap+=r.ap});const d=ac-ap;document.getElementById('tot').innerHTML=`<div><small>AC netto rete (34 PDV)</small><b>${eur(ac)}</b></div><div><small>Delta vs 2025</small><b class="${d>=0?'pos-g':'neg'}">${(d/ap*100).toFixed(2).replace('.',',')}% · ${sgn(d)}</b></div>`;
+    document.getElementById('foot').textContent='AC = netto al 21/11 + venduto di oggi diviso 1,22. AP = 01/11–22/11/2025. Roma e Perugia escluse (senza anno precedente). Ordinati per delta %.';}
+}
+function tween(node,txt,cls){if(node.textContent!==txt){node.textContent=txt;node.animate([{transform:'scale(1.25)',color:'#ffc83d'},{transform:'scale(1)'}],{duration:600});}node.className='val '+(cls||'');}
+function rc(html){const ul=document.getElementById('rc');if(ul.firstChild&&ul.firstChild.textContent.startsWith('In attesa'))ul.innerHTML='';const li=document.createElement('li');const t=new Date();li.innerHTML=`<span style="color:#8a8a9a">${t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</span> ${html}`;ul.prepend(li);while(ul.children.length>12)ul.lastChild.remove();}
+function setUpd(ts,stale){lastFetch=ts;document.getElementById('upd').innerHTML=`Ultimo controllo<br><b>${new Date(ts).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</b>${stale?' (cache)':''} · ogni 30s`;}
+function showMsg(html,btn){const m=document.getElementById('msg');m.innerHTML=html+(btn?`<br><button id="msgbtn">${btn.label}</button>`:'');m.classList.add('show');if(btn)document.getElementById('msgbtn').onclick=btn.on;}
+function hideMsg(){document.getElementById('msg').classList.remove('show');}
+
+document.getElementById('tDay').onclick=()=>{view='day';document.getElementById('tDay').classList.add('on');document.getElementById('tDelta').classList.remove('on');document.getElementById('tower').innerHTML='';render();};
+document.getElementById('tDelta').onclick=()=>{view='delta';document.getElementById('tDelta').classList.add('on');document.getElementById('tDay').classList.remove('on');document.getElementById('tower').innerHTML='';render();};
+
+// ---------- DEMO ----------
+let demoTimer=null;
+document.getElementById('demo').onclick=()=>{
+  if(demoTimer){clearInterval(demoTimer);demoTimer=null;document.getElementById('demo').textContent='Simula gara (demo)';return;}
+  today={};arrivedAt={};prevOrder={};prevPit={};firstLoad=false;document.getElementById('tower').innerHTML='';for(const k in els)delete els[k];render();
+  rc('🟢 <b>DEMO</b>: SEMAFORO VERDE');
+  const order=[...NAMES].sort(()=>Math.random()-.5);let i=0;
+  document.getElementById('demo').textContent='Ferma demo';
+  demoTimer=setInterval(()=>{if(i>=order.length){clearInterval(demoTimer);demoTimer=null;rc('🏁 <b>BANDIERA A SCACCHI</b>');document.getElementById('demo').textContent='Simula gara (demo)';return;}
+    const n=order[i++];const v=Math.round((15000+Math.random()*60000)/10)*10;arrivedAt[n]=Date.now();today[n]=v;rc(`📩 <b>${n.toUpperCase()}</b> AL TRAGUARDO · ${eur(v)}`);render();},1400);
+};
+
+// ---------- LIVE da Apps Script (Gmail) ----------
+// 1) Incolla qui l'URL della web app Apps Script (finisce con /exec)
+const API_URL = "INCOLLA_QUI_URL_WEB_APP";
+const CHIAVE  = "GARRA-44126cd83e58";
+const OGNI_SECONDI = 30;
+function liveOn(on){document.getElementById('live').classList.toggle('off',!on);}
+async function fetchOnce(){
+  if(!API_URL.startsWith('https://script.google.com')){showMsg('Manca l\'URL della web app Apps Script in index.html (API_URL). Intanto puoi provare la demo.');return;}
+  try{
+    const r=await fetch(API_URL+'?k='+encodeURIComponent(CHIAVE)+'&t='+Date.now());
+    const j=await r.json();
+    if(j.error){showMsg('Accesso negato dal server: controlla che la CHIAVE sia uguale in Code.gs e index.html.');liveOn(false);return;}
+    hideMsg();
+    ingest({threads:(j.items||[]).map(it=>({messages:[{subject:it.subject,sender:it.sender,date:it.date,snippet:'VENDUTO GIORNALIERO € '+String(it.value).replace('.',',')}]}))});
+    setUpd(Date.now());liveOn(true);
+  }catch(e){showMsg('Non riesco a leggere i dati in questo momento. Riprovo tra '+OGNI_SECONDI+' secondi.');liveOn(false);}
+}
+document.getElementById('refresh').onclick=fetchOnce;
+render();
+fetchOnce();
+setInterval(()=>{if(!demoTimer&&!document.hidden)fetchOnce();},OGNI_SECONDI*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchOnce();});
+</script>
+</body>
+</html>
