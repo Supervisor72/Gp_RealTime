@@ -77,6 +77,8 @@ body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink
 <div class="tot" id="tot"></div>
 <div class="foot" id="foot"></div>
 <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="refresh">Aggiorna ora</button><button class="btn g" id="demo">Simula tappa (demo)</button></div>
+<details style="margin-top:12px;font-size:13px"><summary style="cursor:pointer;font-weight:700">➕ Aggiungi venduto a mano</summary>
+<form id="manform" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><select id="manpdv" style="flex:1;min-width:140px;padding:8px;border-radius:6px"></select><input id="manval" inputmode="decimal" placeholder="es. 49830,78" style="flex:1;min-width:110px;padding:8px;border-radius:6px;border:1px solid #999"><button class="btn" type="submit" style="margin:0">Aggiungi</button></form><div id="manmsg" style="margin-top:6px"></div></details>
 <div class="radio"><h4>📻 RADIO CORSA <span id="clock"></span></h4><ul id="rc"><li>In attesa della partenza…</li></ul></div>
 <div class="pw" id="pwbox"><div><h3>🚴 GIRO TRONY</h3><p>Inserisci la password per seguire la corsa</p><form id="pwform"><input type="password" id="pwin" placeholder="Password" autocomplete="current-password"><button type="submit">Entra</button></form><div class="err" id="pwerr"></div></div></div>
 <script>
@@ -250,6 +252,13 @@ async function fetchOnce(){
 function askPw(err){document.getElementById('pwbox').style.display='flex';document.getElementById('pwerr').textContent=err||'';setTimeout(()=>document.getElementById('pwin').focus(),50);}
 document.getElementById('pwform').addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('pwin').value.trim();if(!v)return;CHIAVE=v;document.getElementById('pwerr').textContent='Verifico…';fetchOnce();});
 document.getElementById('refresh').onclick=fetchOnce;
+document.getElementById('manpdv').innerHTML=NAMES.map(n=>`<option>${n}</option>`).join('');
+document.getElementById('manform').addEventListener('submit',async e=>{e.preventDefault();const n=document.getElementById('manpdv').value,v=document.getElementById('manval').value.trim(),msg=document.getElementById('manmsg');
+  if(!CHIAVE){askPw();return;}msg.textContent='Invio…';
+  try{const r=await fetch(API_URL+'?k='+encodeURIComponent(CHIAVE)+'&add='+encodeURIComponent(n)+'&v='+encodeURIComponent(v)+'&t='+Date.now());const j=await r.json();
+    if(j.ok){msg.textContent=j.value==null?`${n}: valore manuale tolto`:`✅ ${n}: ${eur(j.value)} aggiunto`;document.getElementById('manval').value='';fetchOnce();}else msg.textContent='Errore: '+(j.error||'');}
+  catch(err){msg.textContent='Non riesco a inviare, riprova.';}});
+
 render();
 fetchOnce();
 setInterval(()=>{if(!demoTimer&&!document.hidden)fetchOnce();},OGNI_SECONDI*1000);
