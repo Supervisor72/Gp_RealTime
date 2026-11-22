@@ -41,7 +41,7 @@ body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink
 .r .n{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .r.grp .n{font-weight:600;font-size:14px}
 .r .v{font-weight:800;font-variant-numeric:tabular-nums;font-size:15px}
-.r .d{text-align:right;font-size:11.5px;font-weight:700;color:var(--pink)}
+.r .d{text-align:right;font-size:11px;font-weight:700;color:var(--pink);line-height:1.15}
 .r.grp .d{color:#888;font-weight:600}
 .r.me .n{color:#b8135a}
 .r .st{color:var(--pink)}
@@ -86,6 +86,9 @@ const MINE=new Set(["Osimo","Civitanova","Pesaro","Macerata","Monsano","Fano"]);
 const BASE={"Pescara":[817695,841906],"Osimo":[606292,597923],"Vasto":[574824,569941],"Macerata":[518533,530587],"Civitanova":[506867,484907],"Padova":[494442,613101],"Avezzano":[486057,484413],"Foligno":[483838,546850],"Pesaro":[471634,478732],"Bologna":[465026,604243],"Lanciano":[454994,458449],"Teramo":[450995,475285],"L'Aquila":[444969,448752],"Monsano":[419670,489099],"Città di Castello":[403955,429804],"Fano":[399349,368249],"Termoli":[380341,402883],"Viterbo":[377830,504951],"Faenza":[373242,421806],"Carpi":[371698,418275],"Forlì":[360541,358685],"Reggio Emilia":[360402,363962],"Maranello":[357302,425101],"Chioggia":[352976,409987],"San Marino":[351027,305462],"San Benedetto":[348874,398810],"Conegliano":[336268,457583],"Rieti":[318805,398254],"Rimini":[306777,309813],"Santa Maria di Sala":[283841,339040],"Vicenza":[272367,281640],"Imola":[232218,269233],"Fabriano":[230208,229399],"Cesena":[228312,243206]};
 const BASE_DATE="2026-11-22"; // giorno a cui si riferisce l'AP (01/11–22/11/2025)
 const IVA=1.22;
+// AC netto al 21/11 anche per Roma e Perugia (senza anno precedente)
+const AC_EXTRA={"Roma":539326,"Perugia":322257};
+function monthRows(){return NAMES.map(n=>{const ac=BASE[n]?BASE[n][0]:AC_EXTRA[n];const t=today[n]!=null?today[n]/IVA:0;const tot=ac+t;const ap=BASE[n]?BASE[n][1]:null;return{n,v:tot,t,ap,p:ap?(tot-ap)/ap*100:null,pit:today[n]==null};}).sort((a,b)=>b.v-a.v);}
 const CODE=Object.fromEntries(PDV), NAMES=PDV.map(p=>p[0]);
 const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
 const KEY=Object.fromEntries(NAMES.map(n=>[norm(n),n]));
@@ -163,7 +166,7 @@ function render(){
   altimetria(got);maglie(D);
   const race=document.getElementById('race');
   let R,mode=view;
-  if(view==='day'){R=D;}else{R=deltaRows();}
+  if(view==='day'){R=D;}else{R=monthRows();}
   const nF=view==='day'?Math.min(FUGA,got):FUGA;
   const nG=R.filter(r=>!(view==='day'&&r.pit)).length-nF;
   // layout y
@@ -173,9 +176,9 @@ function render(){
   race.style.height=(view==='day'&&nS?stTop+nS*H:grpTop+nG*H)+'px';
   // headers
   const lead=R[0];
-  hdr('h1',y0,view==='day'?`In fuga <em>${nF&&R[nF]&&!R[nF].pit?'vantaggio sul gruppo: '+fmt(R[0].v-R[nF].v)+' €':''}</em>`:'Testa della classifica <em>delta % vs 2025</em>',nF>0);
+  hdr('h1',y0,view==='day'?`In fuga <em>${nF&&R[nF]&&!R[nF].pit?'vantaggio sul gruppo: '+fmt(R[0].v-R[nF].v)+' €':''}</em>`:`Testa del mese <em>${R[nF]?'vantaggio: '+fmt(R[0].v-R[nF].v)+' €':''}</em>`,nF>0);
   bg(fugaTop,fugaH);
-  hdr('h2',grpHead,view==='day'?'Il gruppo':'Il gruppo <em>Roma e Perugia escluse</em>',nG>0);
+  hdr('h2',grpHead,view==='day'?'Il gruppo':'Il gruppo',nG>0);
   hdr('h3',stHead,'Staccati · mail non arrivata',view==='day'&&nS>0);
   const seen=new Set(),passes=[];
   R.forEach((r,i)=>{
@@ -190,7 +193,7 @@ function render(){
     el.children[0].textContent=stac?'–':i+1;
     el.children[1].innerHTML=r.n+star(r.n);
     if(view==='day'){el.children[2].textContent=stac?'':eur(r.v);el.children[3].textContent=stac?'in ammiraglia':(i===0?'MAGLIA ROSA':(R[i-1]&&R[i-1].v===r.v?'s.t.':'a '+fmt(lead.v-r.v)));el.children[3].className='d';}
-    else{el.children[2].innerHTML=`<span class="${r.p>=0?'pos':'neg'}">${(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(2).replace('.',',')}%</span>`;el.children[3].textContent=sgn(r.d);el.children[3].className='d '+(r.d>=0?'pos':'neg');}
+    else{el.children[2].textContent=eur(r.v);el.children[3].innerHTML=(i===0?'<b>MAGLIA ROSA</b>':'a '+fmt(lead.v-r.v))+'<br>'+(r.p==null?'<span style="color:#999">nuovo</span>':`<span class="${r.p>=0?'pos':'neg'}">${(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(1).replace('.',',')}%</span>`);el.children[3].className='d';}
     requestAnimationFrame(()=>el.style.transform=`translateY(${yOf(i)}px)`);
     // entrata/uscita fuga
     if(prev!=null&&!stac&&!wasPit&&view==='day'){if(prev>=nF&&i<nF)rc(`🚀 <b>${r.n.toUpperCase()}</b> attacca e si porta in fuga`);else if(prev<nF&&i>=nF)rc(`🫡 <b>${r.n.toUpperCase()}</b> viene ripreso dal gruppo`);}
@@ -203,7 +206,7 @@ function render(){
   // totali
   const tot=Object.values(today).reduce((a,b)=>a+b,0);
   if(view==='day'){document.getElementById('tot').innerHTML=`<div class="card"><small>Totale rete oggi (ivato)</small><b>${eur(tot)}</b></div><div class="card"><small>All'arrivo</small><b>${got} / 36</b></div>`;document.getElementById('foot').textContent='Importi IVA inclusa dalle mail VENDUTI SERALI. ★ = PDV di Diego. Maglia a pois: miglior delta % del mese (AC al 21/11 + oggi senza IVA, vs AP 01–22/11/2025).';}
-  else{let ac=0,ap=0;R.forEach(r=>{ac+=r.ac;ap+=r.ap});const d=ac-ap;document.getElementById('tot').innerHTML=`<div class="card"><small>AC netto rete (34 PDV)</small><b>${eur(ac)}</b></div><div class="card"><small>Delta vs 2025</small><b class="${d>=0?'pos':'neg'}">${(d/ap*100).toFixed(2).replace('.',',')}%</b></div>`;document.getElementById('foot').textContent='AC = netto al 21/11 + venduto di oggi diviso 1,22. AP = 01/11–22/11/2025. Roma e Perugia escluse. Ordinati per delta %.';}
+  else{let tot=0,t=0;R.forEach(r=>{tot+=r.v;t+=r.t});const got=Object.keys(today).length;document.getElementById('tot').innerHTML=`<div class="card"><small>Totale rete mese (netto)</small><b>${eur(tot)}</b></div><div class="card"><small>Di cui oggi (netto)</small><b>${eur(t)}</b></div>`;document.getElementById('foot').textContent='Classifica mese = venduto netto da inizio mese (AC al 21/11) + venduto di oggi diviso 1,22, aggiornato ogni volta che arriva una mail. Sotto il distacco: delta % vs stesso periodo 2025 (verde/rosso) (Roma e Perugia: nuovi, senza anno precedente). ★ = PDV di Diego.';}
 }
 const hdrs={};function hdr(id,y,html,show){let h=hdrs[id];const race=document.getElementById('race');if(!h){h=document.createElement('div');h.className='sec';hdrs[id]=h;}if(h.parentNode!==race)race.appendChild(h);h.innerHTML=html;h.style.transform=`translateY(${y}px)`;h.style.display=show?'flex':'none';}
 let fbg=null;function bg(y,h){const race=document.getElementById('race');if(!fbg){fbg=document.createElement('div');fbg.className='fugabg';}if(fbg.parentNode!==race)race.prepend(fbg);fbg.style.transform=`translateY(${y}px)`;fbg.style.height=h+'px';fbg.style.display=h?'block':'none';}
