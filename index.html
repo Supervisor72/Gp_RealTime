@@ -244,6 +244,7 @@ async function fetchOnce(){
     hideMsg();
     ingest({threads:(j.items||[]).map(it=>({messages:[{subject:it.subject,sender:it.sender,date:it.date,snippet:'VENDUTO GIORNALIERO € '+String(it.value).replace('.',',')}]}))});
     setUpd(Date.now());liveOn(true);
+    (j.nonLetti||[]).forEach(x=>{const k=x.subject+x.sender;if(!window._nl)window._nl={};if(!window._nl[k]){window._nl[k]=1;rc(`⚠️ Mail non letta: <b>${(x.pdv&&x.pdv!=='?'?x.pdv:x.subject).toUpperCase()}</b> (il venduto non è nel testo né in un Excel .xlsx)`);}});
   }catch(e){showMsg('Non riesco a leggere i dati in questo momento. Riprovo tra '+OGNI_SECONDI+' secondi.');liveOn(false);}
 }
 function askPw(err){document.getElementById('pwbox').style.display='flex';document.getElementById('pwerr').textContent=err||'';setTimeout(()=>document.getElementById('pwin').focus(),50);}
