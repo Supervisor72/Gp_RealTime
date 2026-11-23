@@ -105,9 +105,13 @@ body{min-height:100vh;padding:14px 12px 120px;max-width:720px;margin:0 auto}
 const PDV=[["Avezzano","AVE"],["Bologna","BOL"],["Carpi","CAR"],["Cesena","CES"],["Chioggia","CHI"],["Città di Castello","CDC"],["Civitanova","CIV"],["Conegliano","CON"],["Fabriano","FAB"],["Faenza","FAE"],["Fano","FAN"],["Foligno","FOL"],["Forlì","FOR"],["Imola","IMO"],["L'Aquila","AQU"],["Lanciano","LAN"],["Macerata","MAC"],["Maranello","MAR"],["Monsano","MNS"],["Osimo","OSI"],["Padova","PAD"],["Perugia","PER"],["Pesaro","PSR"],["Pescara","PES"],["Reggio Emilia","REG"],["Rieti","RIE"],["Rimini","RIM"],["Roma","ROM"],["San Benedetto","SBT"],["San Marino","SMR"],["Santa Maria di Sala","SMS"],["Teramo","TER"],["Termoli","TRM"],["Vasto","VAS"],["Vicenza","VIC"],["Viterbo","VIT"]];
 const MINE=new Set(["Osimo","Civitanova","Pesaro","Macerata","Monsano","Fano"]);
 // AC netto al 21/11/2026 e AP 01/11-22/11/2025 (da Power BI)
-const BASE={"Pescara":[817695,841906],"Osimo":[606292,597923],"Vasto":[574824,569941],"Macerata":[518533,530587],"Civitanova":[506867,484907],"Padova":[494442,613101],"Avezzano":[486057,484413],"Foligno":[483838,546850],"Pesaro":[471634,478732],"Bologna":[465026,604243],"Lanciano":[454994,458449],"Teramo":[450995,475285],"L'Aquila":[444969,448752],"Monsano":[419670,489099],"Città di Castello":[403955,429804],"Fano":[399349,368249],"Termoli":[380341,402883],"Viterbo":[377830,504951],"Faenza":[373242,421806],"Carpi":[371698,418275],"Forlì":[360541,358685],"Reggio Emilia":[360402,363962],"Maranello":[357302,425101],"Chioggia":[352976,409987],"San Marino":[351027,305462],"San Benedetto":[348874,398810],"Conegliano":[336268,457583],"Rieti":[318805,398254],"Rimini":[306777,309813],"Santa Maria di Sala":[283841,339040],"Vicenza":[272367,281640],"Imola":[232218,269233],"Fabriano":[230208,229399],"Cesena":[228312,243206]};
-const BASE_DATE="2026-11-22"; // giorno a cui si riferisce l'AP (01/11–22/11/2025)
+const BASE={"Pescara": [817695, 934783], "Osimo": [606292, 673435], "Vasto": [574824, 626441], "Macerata": [518533, 588541], "Civitanova": [506867, 544358], "Padova": [494442, 674530], "Avezzano": [486057, 549478], "Foligno": [483838, 612423], "Pesaro": [471634, 523107], "Bologna": [465026, 674119], "Lanciano": [454994, 509834], "Teramo": [450995, 512272], "L'Aquila": [444969, 479961], "Monsano": [419670, 534599], "Città di Castello": [403955, 477398], "Fano": [399349, 407667], "Termoli": [380341, 432433], "Viterbo": [377830, 574636], "Faenza": [373242, 464777], "Carpi": [371698, 464427], "Forlì": [360541, 384041], "Reggio Emilia": [360402, 397330], "Maranello": [357302, 455200], "Chioggia": [352976, 442528], "San Marino": [351027, 331749], "San Benedetto": [348874, 437057], "Conegliano": [336268, 501547], "Rieti": [318805, 430996], "Rimini": [306777, 334290], "Santa Maria di Sala": [283841, 371418], "Vicenza": [272367, 300600], "Imola": [232218, 286819], "Fabriano": [230208, 250949], "Cesena": [228312, 261829]};
+const BASE_DATE="2026-11-23"; // giorno a cui si riferisce l'AP (01/11–23/11/2025)
 const IVA=1.22;
+// controcifre 2025 (stesso giorno anno scorso, netto) – valide solo nel giorno CONTRO_DATE
+const CONTRO_DATE="2026-11-23";
+const CONTRO={"Pescara": 92877, "Osimo": 75512, "Bologna": 69876, "Viterbo": 69685, "Foligno": 65573, "Avezzano": 65065, "Padova": 61429, "Civitanova": 59451, "Macerata": 57954, "Vasto": 56500, "Lanciano": 51385, "Città di Castello": 47594, "Carpi": 46152, "Monsano": 45500, "Pesaro": 44375, "Conegliano": 43964, "Faenza": 42971, "Fano": 39418, "San Benedetto": 38247, "Teramo": 36987, "Reggio Emilia": 33368, "Rieti": 32742, "Chioggia": 32541, "Santa Maria di Sala": 32378, "L'Aquila": 31209, "Maranello": 30099, "Termoli": 29550, "San Marino": 26287, "Forlì": 25356, "Rimini": 24477, "Fabriano": 21550, "Vicenza": 18960, "Cesena": 18623, "Imola": 17586};
+function controPct(n,v){const d=new Date(),k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");if(k!==CONTRO_DATE||!CONTRO[n]||v==null)return null;return (v/IVA-CONTRO[n])/CONTRO[n]*100;}
 const CODE=Object.fromEntries(PDV), NAMES=PDV.map(p=>p[0]);
 const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
 const KEY=Object.fromEntries(NAMES.map(n=>[norm(n),n]));
@@ -154,7 +158,7 @@ function rows(){
     const arr=NAMES.map(n=>({n,v:today[n],pit:today[n]==null}));
     arr.sort((a,b)=>(a.pit-b.pit)||((b.v||0)-(a.v||0))||a.n.localeCompare(b.n));
     const lead=arr[0]&&!arr[0].pit?arr[0].v:0;
-    return arr.map((r,i)=>({...r,main:r.pit?'—':eur(r.v),gap:r.pit?'PIT':(i===0?'LEADER':'−'+eur(lead-r.v).slice(2))}));
+    return arr.map((r,i)=>{const cp=r.pit?null:controPct(r.n,r.v);if(cp!=null){const dif=r.v/IVA-CONTRO[r.n];return {...r,main:eur(r.v),gap:(dif>=0?'+':'−')+fmt(dif),cls:'',gcls:dif>=0?'pos-g':'neg'};}return {...r,main:r.pit?'—':eur(r.v),gap:r.pit?'PIT':(i===0?'LEADER':'−'+eur(lead-r.v).slice(2))};});
   }
   const arr=Object.keys(BASE).map(n=>{const [ac,ap]=BASE[n];const t=today[n]!=null?today[n]/IVA:0;const acn=ac+t;return{n,ac:acn,ap,d:acn-ap,p:(acn-ap)/ap*100,pit:today[n]==null};});
   arr.sort((a,b)=>b.p-a.p);
@@ -179,7 +183,7 @@ function render(){
     el.querySelector('.pos').textContent=r.pit&&view==='day'?'–':i+1;
     tween(el.querySelector('.val'),r.main,r.cls);
     el.querySelector('.gap').textContent=r.gap;
-    el.querySelector('.gap').className='gap '+(view==='delta'?(r.cls||''):'');
+    el.querySelector('.gap').className='gap '+(view==='delta'?(r.cls||''):(r.gcls||''));
     requestAnimationFrame(()=>el.style.transform=`translateY(${i*H}px)`);
   });
   [...tower.children].forEach(c=>{const n=c.querySelector('.nm').textContent;if(!seen.has(n)||!els[view+n]||els[view+n]!==c)c.remove();});
@@ -190,12 +194,12 @@ function render(){
   const got=Object.keys(today).length;
   document.getElementById('lap').innerHTML=`${got}<small>/36 AL TRAGUARDO</small>`;
   document.getElementById('prog').style.width=(got/36*100)+'%';
-  document.getElementById('hdr').innerHTML=view==='day'?'<div>Pos</div><div>PDV</div><div>Venduto</div><div>Distacco</div>':'<div>Pos</div><div>PDV</div><div>Delta %</div><div>Delta €</div>';
+  document.getElementById('hdr').innerHTML=view==='day'?'<div>Pos</div><div>PDV</div><div>Venduto</div><div>vs 2025</div>':'<div>Pos</div><div>PDV</div><div>Delta %</div><div>Delta €</div>';
   const totDay=Object.values(today).reduce((a,b)=>a+b,0);
   if(view==='day'){document.getElementById('tot').innerHTML=`<div><small>Totale rete oggi (ivato)</small><b>${eur(totDay)}</b></div><div><small>Mail arrivate</small><b>${got} / 36</b></div>`;
     document.getElementById('foot').textContent='Importi IVA inclusa, letti da "VENDUTO GIORNALIERO" nelle mail della cartella VENDUTI SERALI. PIT = mail non ancora arrivata. ⭐ oro = PDV di Diego.';}
   else{let ac=0,ap=0;R.forEach(r=>{ac+=r.ac;ap+=r.ap});const d=ac-ap;document.getElementById('tot').innerHTML=`<div><small>AC netto rete (34 PDV)</small><b>${eur(ac)}</b></div><div><small>Delta vs 2025</small><b class="${d>=0?'pos-g':'neg'}">${(d/ap*100).toFixed(2).replace('.',',')}% · ${sgn(d)}</b></div>`;
-    document.getElementById('foot').textContent='AC = netto al 21/11 + venduto di oggi diviso 1,22. AP = 01/11–22/11/2025. Roma e Perugia escluse (senza anno precedente). Ordinati per delta %.';}
+    document.getElementById('foot').textContent='AC = netto al 21/11 + venduto di oggi diviso 1,22. AP = 01/11–23/11/2025. Roma e Perugia escluse (senza anno precedente). Ordinati per delta %.';}
 }
 function tween(node,txt,cls){if(node.textContent!==txt){node.textContent=txt;node.animate([{transform:'scale(1.25)',color:'#ffc83d'},{transform:'scale(1)'}],{duration:600});}node.className='val '+(cls||'');}
 function rc(html){const ul=document.getElementById('rc');if(ul.firstChild&&ul.firstChild.textContent.startsWith('In attesa'))ul.innerHTML='';const li=document.createElement('li');const t=new Date();li.innerHTML=`<span style="color:#8a8a9a">${t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</span> ${html}`;ul.prepend(li);while(ul.children.length>12)ul.lastChild.remove();}
@@ -267,14 +271,14 @@ async function scaricaJpg(tipo){
     ctx.textAlign='left';ctx.fillStyle=pit?T.mut:(mine?T.mineInk:T.ink);ctx.font=`${mine?800:700} 30px ${T.font}`;ctx.fillText(r.n+(mine?'  ★':''),140,y+RH/2+2);
     ctx.textAlign='right';ctx.fillStyle=pit?T.mut:T.ink;ctx.font=`800 30px ${T.font}`;ctx.fillText(pit?'—':eur(r.v),760,y+RH/2+2);
     let g,gc=T.mut;
-    if(tipo==='giorno')g=pit?'mail non arrivata':(i===0?'LEADER':'−'+fmt(lead-r.v));
+    if(tipo==='giorno'){g=pit?'mail non arrivata':(controPct('Pescara',1)!=null&&!CONTRO[r.n]?'nuovo (no 2025)':(i===0?'LEADER':'−'+fmt(lead-r.v)));const cp=pit?null:controPct(r.n,r.v);if(cp!=null){const dif=r.v/IVA-CONTRO[r.n];ctx.fillStyle=dif>=0?T.up:T.dn;ctx.font=`800 22px ${T.font}`;ctx.textAlign='right';ctx.fillText((dif>=0?'+':'−')+'€ '+fmt(dif),W-60,y+RH/2-10);ctx.font=`700 19px ${T.font}`;ctx.fillStyle=cp>=0?T.up:T.dn;ctx.fillText((cp>=0?'+':'−')+Math.abs(cp).toFixed(1).replace('.',',')+'% vs 2025',W-60,y+RH/2+13);ctx.textAlign='left';return;}}
     else{g=r.p==null?'nuovo':(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(1).replace('.',',')+'% vs 2025';gc=r.p==null?T.mut:(r.p>=0?T.up:T.dn);}
     ctx.fillStyle=gc;ctx.font=`700 24px ${T.font}`;ctx.fillText(g,W-60,y+RH/2+2);ctx.textAlign='left';
   });
   ctx.textBaseline='alphabetic';
   const tot=R.reduce((a,r)=>a+(r.v||0),0);
   ctx.fillStyle=T.ink;ctx.font=`800 30px ${T.font}`;ctx.fillText((tipo==='giorno'?'Totale rete oggi: ':'Totale rete mese: ')+eur(tot),60,H-80);
-  ctx.fillStyle=T.mut;ctx.font=`600 22px ${T.font}`;ctx.fillText('★ = PDV di Diego'+(tipo==='giorno'?` · ${Object.keys(today).length}/36 mail arrivate`:''),60,H-42);
+  ctx.fillStyle=T.mut;ctx.font=`600 22px ${T.font}`;ctx.fillText('★ = PDV di Diego'+(tipo==='giorno'&&controPct('Pescara',1)!=null?' · scarto vs controcifra 2025 stesso giorno (netto IVA)':'')+(tipo==='giorno'?` · ${Object.keys(today).length}/36 mail arrivate`:''),60,H-42);
   const blob=await new Promise(res=>cv.toBlob(res,'image/jpeg',0.92));
   const name=`${T.file}_${tipo}_${now.toISOString().slice(0,10)}.jpg`;
   const file=new File([blob],name,{type:'image/jpeg'});
