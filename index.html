@@ -256,7 +256,7 @@ async function scaricaJpg(tipo){
   if(T.band){ctx.fillStyle=T.band;ctx.fillRect(0,0,W,12);}
   const now=new Date(),dd=now.toLocaleDateString('it-IT',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}),hh=now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   ctx.textBaseline='alphabetic';ctx.fillStyle=T.ink;ctx.font=`900 ${T.italic?'italic ':''}64px ${T.font}`;ctx.fillText(T.title,60,110);
-  ctx.fillStyle=T.accent;ctx.font=`800 38px ${T.font}`;ctx.fillText(tipo==='giorno'?(T.dayLabel||'VENDUTO DI OGGI'):(T.monthLabel||'CLASSIFICA MESE'),60,165);
+  ctx.fillStyle=T.accent;{const lbl=tipo==='giorno'?(T.dayLabel||'VENDUTO DI OGGI'):(T.monthLabel||'CLASSIFICA MESE');let fs=38;do{ctx.font=`800 ${fs}px ${T.font}`;fs--;}while(ctx.measureText(lbl).width>W-120&&fs>18);ctx.fillText(lbl,60,165);}
   ctx.fillStyle=T.mut;ctx.font=`600 26px ${T.font}`;ctx.fillText(`${dd} · ore ${hh}`+(tipo==='giorno'?' · IVA inclusa':' · netto IVA, AC + oggi'),60,208);
   const lead=R[0]&&R[0].v||0;ctx.textBaseline='middle';
   R.forEach((r,i)=>{const y=top+i*RH, mine=MINE.has(r.n), pit=tipo==='giorno'&&r.pit;
