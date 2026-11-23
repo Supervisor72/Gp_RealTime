@@ -272,7 +272,7 @@ async function scaricaJpg(tipo){
     ctx.textAlign='right';ctx.fillStyle=pit?T.mut:T.ink;ctx.font=`800 30px ${T.font}`;ctx.fillText(pit?'—':eur(r.v),760,y+RH/2+2);
     let g,gc=T.mut;
     if(tipo==='giorno'){g=pit?'mail non arrivata':(controPct('Pescara',1)!=null&&!CONTRO[r.n]?'nuovo (no 2025)':(i===0?'LEADER':'−'+fmt(lead-r.v)));const cp=pit?null:controPct(r.n,r.v);if(cp!=null){const dif=r.v/IVA-CONTRO[r.n];ctx.fillStyle=dif>=0?T.up:T.dn;ctx.font=`800 26px ${T.font}`;ctx.textAlign='right';ctx.fillText((dif>=0?'+':'−')+'€ '+fmt(dif),W-60,y+RH/2+2);ctx.textAlign='left';return;}}
-    else{if(r.ap==null){g='nuovo';gc=T.mut;}else{const dm=r.v-r.ap;g=(dm>=0?'+':'−')+'€ '+fmt(dm);gc=dm>=0?T.up:T.dn;ctx.font=`800 26px ${T.font}`;ctx.fillStyle=gc;ctx.textAlign='right';ctx.fillText(g,W-60,y+RH/2+2);ctx.textAlign='left';return;}}
+    else{if(r.ap==null){g='nuovo';gc=T.mut;}else{const dm=r.v-r.ap;g=(dm>=0?'+':'−')+'€ '+fmt(dm);gc=dm>=0?T.up:T.dn;ctx.font=`800 24px ${T.font}`;ctx.fillStyle=gc;ctx.textAlign='right';ctx.fillText(g,W-60,y+RH/2-8);ctx.font=`600 17px ${T.font}`;ctx.fillText((r.p>=0?'+':'−')+Math.abs(r.p).toFixed(1).replace('.',',')+'%',W-60,y+RH/2+14);ctx.textAlign='left';return;}}
     ctx.fillStyle=gc;ctx.font=`700 24px ${T.font}`;ctx.fillText(g,W-60,y+RH/2+2);ctx.textAlign='left';
   });
   ctx.textBaseline='alphabetic';
