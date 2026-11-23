@@ -202,7 +202,7 @@ function render(){
     el.children[0].textContent=stac?'–':i+1;
     el.children[1].innerHTML=r.n+star(r.n);
     if(view==='day'){el.children[2].textContent=stac?'':eur(r.v);{const t1=stac?'in ammiraglia':(i===0?'MAGLIA ROSA':(R[i-1]&&R[i-1].v===r.v?'s.t.':'a '+fmt(lead.v-r.v)));const cp=stac?null:controPct(r.n,r.v);if(cp==null)el.children[3].innerHTML=t1;else{const dif=r.v/IVA-CONTRO[r.n];el.children[3].innerHTML=`<span class="${dif>=0?'pos':'neg'}" style="font-size:13px"><b>${(dif>=0?'+':'−')+'€ '+fmt(dif)}</b></span>`;}el.children[3].className='d';}}
-    else{el.children[2].textContent=eur(r.v);el.children[3].innerHTML=(i===0?'<b>MAGLIA ROSA</b>':'a '+fmt(lead.v-r.v))+'<br>'+(r.p==null?'<span style="color:#999">nuovo</span>':`<span class="${r.p>=0?'pos':'neg'}">${(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(1).replace('.',',')}%</span>`);el.children[3].className='d';}
+    else{el.children[2].textContent=eur(r.v);el.children[3].innerHTML=r.ap==null?'<span style="color:#999">nuovo</span>':`<span class="${r.v-r.ap>=0?'pos':'neg'}" style="font-size:13px"><b>${(r.v-r.ap>=0?'+':'−')+'€ '+fmt(r.v-r.ap)}</b></span>`;el.children[3].className='d';}
     requestAnimationFrame(()=>el.style.transform=`translateY(${yOf(i)}px)`);
     // entrata/uscita fuga
     if(prev!=null&&!stac&&!wasPit&&view==='day'){if(prev>=nF&&i<nF)rc(`🚀 <b>${r.n.toUpperCase()}</b> attacca e si porta in fuga`);else if(prev<nF&&i>=nF)rc(`🫡 <b>${r.n.toUpperCase()}</b> viene ripreso dal gruppo`);}
@@ -215,7 +215,7 @@ function render(){
   // totali
   const tot=Object.values(today).reduce((a,b)=>a+b,0);
   if(view==='day'){document.getElementById('tot').innerHTML=`<div class="card"><small>Totale rete oggi (ivato)</small><b>${eur(tot)}</b></div><div class="card"><small>All'arrivo</small><b>${got} / 36</b></div>`;document.getElementById('foot').textContent='Importi IVA inclusa dalle mail VENDUTI SERALI. ★ = PDV di Diego. Maglia a pois: miglior delta % del mese (AC al 22/11 + oggi senza IVA, vs AP 01–23/11/2025).';}
-  else{let tot=0,t=0;R.forEach(r=>{tot+=r.v;t+=r.t});const got=Object.keys(today).length;document.getElementById('tot').innerHTML=`<div class="card"><small>Totale rete mese (netto)</small><b>${eur(tot)}</b></div><div class="card"><small>Di cui oggi (netto)</small><b>${eur(t)}</b></div>`;document.getElementById('foot').textContent='Classifica mese = venduto netto da inizio mese (AC al 22/11) + venduto di oggi diviso 1,22, aggiornato ogni volta che arriva una mail. Sotto il distacco: delta % vs stesso periodo 2025 (verde/rosso) (Roma e Perugia: nuovi, senza anno precedente). ★ = PDV di Diego.';}
+  else{let tot=0,t=0;R.forEach(r=>{tot+=r.v;t+=r.t});const got=Object.keys(today).length;document.getElementById('tot').innerHTML=`<div class="card"><small>Totale rete mese (netto)</small><b>${eur(tot)}</b></div><div class="card"><small>Di cui oggi (netto)</small><b>${eur(t)}</b></div>`;document.getElementById('foot').textContent='Classifica mese = venduto netto da inizio mese (AC al 22/11) + venduto di oggi diviso 1,22, aggiornato ogni volta che arriva una mail. A destra: delta mese in € vs stesso periodo 2025 (verde/rosso) (Roma e Perugia: nuovi, senza anno precedente). ★ = PDV di Diego.';}
 }
 const hdrs={};function hdr(id,y,html,show){let h=hdrs[id];const race=document.getElementById('race');if(!h){h=document.createElement('div');h.className='sec';hdrs[id]=h;}if(h.parentNode!==race)race.appendChild(h);h.innerHTML=html;h.style.transform=`translateY(${y}px)`;h.style.display=show?'flex':'none';}
 let fbg=null;function bg(y,h){const race=document.getElementById('race');if(!fbg){fbg=document.createElement('div');fbg.className='fugabg';}if(fbg.parentNode!==race)race.prepend(fbg);fbg.style.transform=`translateY(${y}px)`;fbg.style.height=h+'px';fbg.style.display=h?'block':'none';}
@@ -262,7 +262,7 @@ document.getElementById('refresh').onclick=fetchOnce;
 const JPG_THEME={bg:'#fbeef2',band:'#e0457b',ink:'#1d1d1f',mut:'#8a6f7b',accent:'#e0457b',row:'#ffffff',row2:'#fff7fa',posBg:'#1d1d1f',posInk:'#fff',gold:'#f2a7c3',silver:'#e6e6ea',bronze:'#f4c9a8',mineBg:'#ffd7e6',mineInk:'#b8135a',up:'#13a35a',dn:'#d92b2b',font:"Inter,system-ui,sans-serif",italic:false,title:'GIRO TRONY',dayLabel:`TAPPA ${GG} · ${NOME_TAPPA.toUpperCase()}`,monthLabel:'CLASSIFICA DEL MESE',file:'Giro_Trony'};
 // ---------- SCARICA JPG ----------
 const JPG_DAY=()=>NAMES.map(n=>({n,v:today[n],pit:today[n]==null})).sort((a,b)=>(a.pit-b.pit)||((b.v||0)-(a.v||0))||a.n.localeCompare(b.n));
-const JPG_MONTH=()=>NAMES.map(n=>{const ac=BASE[n]?BASE[n][0]:JPG_AC_EXTRA[n];const t=today[n]!=null?today[n]/IVA:0;const tot=ac+t;const ap=BASE[n]?BASE[n][1]:null;return{n,v:tot,p:ap?(tot-ap)/ap*100:null};}).sort((a,b)=>b.v-a.v);
+const JPG_MONTH=()=>NAMES.map(n=>{const ac=BASE[n]?BASE[n][0]:JPG_AC_EXTRA[n];const t=today[n]!=null?today[n]/IVA:0;const tot=ac+t;const ap=BASE[n]?BASE[n][1]:null;return{n,v:tot,ap,p:ap?(tot-ap)/ap*100:null};}).sort((a,b)=>b.v-a.v);
 const JPG_AC_EXTRA={"Roma": 579924, "Perugia": 358652};
 function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 async function scaricaJpg(tipo){
@@ -286,12 +286,12 @@ async function scaricaJpg(tipo){
     ctx.textAlign='right';ctx.fillStyle=pit?T.mut:T.ink;ctx.font=`800 30px ${T.font}`;ctx.fillText(pit?'—':eur(r.v),760,y+RH/2+2);
     let g,gc=T.mut;
     if(tipo==='giorno'){g=pit?'mail non arrivata':(controPct('Pescara',1)!=null&&!CONTRO[r.n]?'nuovo (no 2025)':(i===0?'LEADER':'−'+fmt(lead-r.v)));const cp=pit?null:controPct(r.n,r.v);if(cp!=null){const dif=r.v/IVA-CONTRO[r.n];ctx.fillStyle=dif>=0?T.up:T.dn;ctx.font=`800 26px ${T.font}`;ctx.textAlign='right';ctx.fillText((dif>=0?'+':'−')+'€ '+fmt(dif),W-60,y+RH/2+2);ctx.textAlign='left';return;}}
-    else{g=r.p==null?'nuovo':(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(1).replace('.',',')+'% vs 2025';gc=r.p==null?T.mut:(r.p>=0?T.up:T.dn);}
+    else{if(r.ap==null){g='nuovo';gc=T.mut;}else{const dm=r.v-r.ap;g=(dm>=0?'+':'−')+'€ '+fmt(dm);gc=dm>=0?T.up:T.dn;ctx.font=`800 26px ${T.font}`;ctx.fillStyle=gc;ctx.textAlign='right';ctx.fillText(g,W-60,y+RH/2+2);ctx.textAlign='left';return;}}
     ctx.fillStyle=gc;ctx.font=`700 24px ${T.font}`;ctx.fillText(g,W-60,y+RH/2+2);ctx.textAlign='left';
   });
   ctx.textBaseline='alphabetic';
 
-  ctx.fillStyle=T.mut;ctx.font=`600 22px ${T.font}`;ctx.fillText('★ = PDV di Diego'+(tipo==='giorno'&&controPct('Pescara',1)!=null?' · a destra: scarto in € dalla controcifra 2025 (netto IVA)':'')+(tipo==='giorno'?` · ${Object.keys(today).length}/36 mail arrivate`:''),60,H-42);
+  ctx.fillStyle=T.mut;ctx.font=`600 22px ${T.font}`;ctx.fillText('★ = PDV di Diego'+(tipo==='mese'?' · a destra: delta mese in € vs 2025 (netto IVA)':'')+(tipo==='giorno'&&controPct('Pescara',1)!=null?' · a destra: scarto in € dalla controcifra 2025 (netto IVA)':'')+(tipo==='giorno'?` · ${Object.keys(today).length}/36 mail arrivate`:''),60,H-42);
   const blob=await new Promise(res=>cv.toBlob(res,'image/jpeg',0.92));
   const name=`${T.file}_${tipo}_${now.toISOString().slice(0,10)}.jpg`;
   const file=new File([blob],name,{type:'image/jpeg'});
