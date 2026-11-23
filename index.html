@@ -90,7 +90,7 @@ body{min-height:100vh;padding:14px 12px 120px;max-width:720px;margin:0 auto}
 </div>
 <div class="hdr" id="hdr"><div>Pos</div><div>PDV</div><div>Venduto</div><div>Distacco</div></div>
 <div class="tower" id="tower"></div>
-<div class="tot" id="tot"></div>
+<div class="tot" id="tot" style="display:none"></div>
 <div class="foot" id="foot"></div>
 <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
   <button class="btn" id="refresh">Aggiorna ora</button><button class="btn g" id="jpgDay">📷 JPG giorno</button><button class="btn g" id="jpgMonth">📷 JPG mese</button>
@@ -253,7 +253,7 @@ const JPG_AC_EXTRA={"Roma":539326,"Perugia":322257};
 function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 async function scaricaJpg(tipo){
   const T=JPG_THEME, W=1080, RH=58, top=250, R=tipo==='giorno'?JPG_DAY():JPG_MONTH();
-  const H=top+R.length*RH+150;
+  const H=top+R.length*RH+90;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const ctx=cv.getContext('2d');ctx.textBaseline='middle';
   try{await document.fonts.ready;}catch(e){}
   ctx.fillStyle=T.bg;ctx.fillRect(0,0,W,H);
@@ -276,8 +276,7 @@ async function scaricaJpg(tipo){
     ctx.fillStyle=gc;ctx.font=`700 24px ${T.font}`;ctx.fillText(g,W-60,y+RH/2+2);ctx.textAlign='left';
   });
   ctx.textBaseline='alphabetic';
-  const tot=R.reduce((a,r)=>a+(r.v||0),0);
-  ctx.fillStyle=T.ink;ctx.font=`800 30px ${T.font}`;ctx.fillText((tipo==='giorno'?'Totale rete oggi: ':'Totale rete mese: ')+eur(tot),60,H-80);
+
   ctx.fillStyle=T.mut;ctx.font=`600 22px ${T.font}`;ctx.fillText('★ = PDV di Diego'+(tipo==='giorno'&&controPct('Pescara',1)!=null?' · a destra: scarto in € dalla controcifra 2025 (netto IVA)':'')+(tipo==='giorno'?` · ${Object.keys(today).length}/36 mail arrivate`:''),60,H-42);
   const blob=await new Promise(res=>cv.toBlob(res,'image/jpeg',0.92));
   const name=`${T.file}_${tipo}_${now.toISOString().slice(0,10)}.jpg`;
