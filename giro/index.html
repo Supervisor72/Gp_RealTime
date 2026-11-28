@@ -44,7 +44,7 @@ body{background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink
 .r .d{text-align:right;font-size:11px;font-weight:700;color:var(--pink);line-height:1.15}
 .r.grp .d{color:#888;font-weight:600}
 .r.me .n{color:#b8135a}
-.r .st{color:var(--pink)}
+.r .st{color:var(--pink)}.cyc{vertical-align:-4px;margin-left:3px}
 .r.stac{background:transparent;border:1.5px dashed #c9a0b1;opacity:.75}
 .r.stac .dor{background:#c9a0b1}
 .r.stac .n{color:#9a7685;font-weight:700}
@@ -156,7 +156,10 @@ h+=`<text x="598" y="2" text-anchor="end">🏁</text>`;document.getElementById('
 function altimetria(n){const x=600*((GG-1)+n/36)/DIM;document.getElementById('rider').setAttribute('transform',`translate(${x},${yAt(x)})`);document.getElementById('clipr').setAttribute('width',x);document.getElementById('km').textContent=`${n}/36 al traguardo`;}
 // ----- maglie -----
 function jersey(col,dots){const id='p'+Math.random().toString(36).slice(2,7);const pat=dots?`<pattern id="${id}" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><circle cx="4" cy="4" r="2.2" fill="#d6001c"/></pattern>`:'';return `<svg viewBox="0 0 64 56" width="52" height="45"><defs>${pat}</defs><path d="M20 4 L8 10 L1 26 L11 31 L15 22 L15 54 L49 54 L49 22 L53 31 L63 26 L56 10 L44 4 C42 10 22 10 20 4Z" fill="${dots?`url(#${id})`:col}" stroke="#222" stroke-width="2" stroke-linejoin="round"/></svg>`;}
-const star=n=>MINE.has(n)?' <span class="st">★</span>':'';
+const CYC_PATH="M5 12m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M19 12m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M5 12L10 7L17 7L19 12M10 7L12 12M17 7L18 4L20.5 4M12 3L17 0.5L19.5 4M12 3L14.5 7.5L13 12M12 3L10.5 7L11 11";
+const CYC_SVG='<svg class="cyc" viewBox="0 -4.5 24 19" width="26" height="20"><path d="'+CYC_PATH+'" fill="none" stroke="#e0457b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.6" cy="-1.6" r="1.8" fill="#1d1d1f"/></svg>';
+function drawCyclist(ctx,x,y,h,col){const sc=h/19;ctx.save();ctx.translate(x,y-h/2+4.5*sc);ctx.scale(sc,sc);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(new Path2D(CYC_PATH));ctx.fillStyle='#1d1d1f';ctx.beginPath();ctx.arc(18.6,-1.6,1.8,0,Math.PI*2);ctx.fill();ctx.restore();}
+const star=n=>MINE.has(n)?' <span class="st">★</span>'+CYC_SVG:'';
 function deltaRows(){return Object.keys(BASE).map(n=>{const[ac,ap]=BASE[n];const t=today[n]!=null?today[n]/IVA:0;const acn=ac+t;return{n,ac:acn,ap,d:acn-ap,p:(acn-ap)/ap*100,pit:today[n]==null};}).sort((a,b)=>b.p-a.p);}
 function dayRows(){return NAMES.map(n=>({n,v:today[n],pit:today[n]==null})).sort((a,b)=>(a.pit-b.pit)||((b.v||0)-(a.v||0))||a.n.localeCompare(b.n));}
 function maglie(D){
@@ -288,7 +291,7 @@ async function scaricaJpg(tipo){
     const medal=[T.gold,T.silver,T.bronze][i];
     ctx.fillStyle=pit?T.mut:(medal&&!pit?medal:T.posBg);rr(ctx,52,y+8,64,RH-24,8);ctx.fill();
     ctx.fillStyle=pit?T.bg:(medal?'#1d1d1f':T.posInk);ctx.font=`900 28px ${T.font}`;ctx.textAlign='center';ctx.fillText(pit?'–':String(i+1),84,y+RH/2+2);
-    ctx.textAlign='left';ctx.fillStyle=pit?T.mut:(mine?T.mineInk:T.ink);ctx.font=`${mine?800:700} 30px ${T.font}`;ctx.fillText(r.n+(mine?'  ★':''),140,y+RH/2+2);
+    ctx.textAlign='left';ctx.fillStyle=pit?T.mut:(mine?T.mineInk:T.ink);ctx.font=`${mine?800:700} 30px ${T.font}`;ctx.fillText(r.n+(mine?'  ★':''),140,y+RH/2+2);if(mine){const w=ctx.measureText(r.n+'  ★').width;drawCyclist(ctx,140+w+10,y+RH/2-4,44,T.accent);}
     ctx.textAlign='right';ctx.fillStyle=pit?T.mut:T.ink;ctx.font=`800 30px ${T.font}`;ctx.fillText(pit?'—':eur(r.v),760,y+RH/2+2);
     let g,gc=T.mut;
     if(tipo==='giorno'){g=pit?'mail non arrivata':(controPct('Pescara',1)!=null&&!CONTRO[r.n]?'nuovo (no 2025)':(i===0?'LEADER':'−'+fmt(lead-r.v)));const cp=pit?null:controPct(r.n,r.v);if(cp!=null){const dif=r.v/IVA-CONTRO[r.n];ctx.fillStyle=dif>=0?T.up:T.dn;ctx.font=`800 26px ${T.font}`;ctx.textAlign='right';ctx.fillText((dif>=0?'+':'−')+'€ '+fmt(dif),W-60,y+RH/2+2);ctx.textAlign='left';return;}}
